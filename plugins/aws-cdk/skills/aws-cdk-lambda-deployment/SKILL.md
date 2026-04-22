@@ -55,7 +55,7 @@ Always verify Lambda runtime support, regional availability, and current quotas 
 Default to `NodejsFunction` / `PythonFunction` so bundling lives inside `cdk synth` and is reproducible.
 
 ```typescript
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Architecture, Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Duration } from 'aws-cdk-lib';
@@ -110,6 +110,8 @@ Follow the resource-naming rule from `aws-cdk-development`: do **not** set `func
 New code should always roll out behind an **alias** so that integrations (API Gateway, EventBridge, SNS, SQS) point at a stable target while a new version is canaried.
 
 ```typescript
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Duration } from 'aws-cdk-lib';
 import { LambdaDeploymentConfig, LambdaDeploymentGroup } from 'aws-cdk-lib/aws-codedeploy';
 import { Alarm, ComparisonOperator } from 'aws-cdk-lib/aws-cloudwatch';
 
@@ -146,7 +148,7 @@ Always pair traffic shifting with at least one CloudWatch alarm (errors, throttl
 
 - **Architecture**: Default to `Architecture.ARM_64` — ~20% cheaper and often faster.
 - **Memory tuning**: Memory sets CPU too. Use the [AWS Lambda Power Tuning](https://github.com/alexcasalboni/aws-lambda-power-tuning) state machine to find the cost/performance sweet spot — verify the latest deployment instructions via `awsdocs` MCP.
-- **SnapStart** (Java, .NET, Python preview): Enable with `snapStart: lambda.SnapStartConf.ON_PUBLISHED_VERSIONS` to cut cold starts dramatically. Confirm runtime support via MCP before enabling.
+- **SnapStart**: Available for Java and (more recently) .NET and Python runtimes — always confirm current runtime coverage via the `awsdocs` MCP before enabling. Turn on with `snapStart: lambda.SnapStartConf.ON_PUBLISHED_VERSIONS` to cut cold starts dramatically.
 - **Provisioned concurrency**: Attach to an alias for predictable warm capacity:
   ```typescript
   live.addAutoScaling({ minCapacity: 5, maxCapacity: 50 })
@@ -165,6 +167,9 @@ Use layers when:
 Define and attach:
 
 ```typescript
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Stack } from 'aws-cdk-lib';
+
 const powertools = lambda.LayerVersion.fromLayerVersionArn(
   this,
   'Powertools',
