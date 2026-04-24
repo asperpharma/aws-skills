@@ -17,12 +17,17 @@ Shared AWS agent skills including AWS Documentation MCP configuration for queryi
 
 ### 1. AWS CDK Plugin
 
-AWS CDK development skill with integrated MCP server for infrastructure as code.
+AWS CDK development skill with integrated MCP server for infrastructure as code, plus a dedicated skill for production-grade Lambda deployment.
 
 **Features**:
 - AWS CDK best practices and patterns
 - Pre-deployment validation script
 - Comprehensive CDK patterns reference
+- **Lambda deployment**: bundling (NodejsFunction/PythonFunction), layers, versions and aliases, CodeDeploy traffic shifting (canary, linear, all-at-once), cold-start optimisation (ARM64, SnapStart, provisioned concurrency), and observability with Powertools + X-Ray
+
+**Skills**:
+- `aws-cdk-development` — general CDK guidance, validation strategy, and patterns reference
+- `aws-cdk-lambda-deployment` — Lambda-focused deployment, traffic shifting, and runtime tuning
 
 **Integrated MCP Server**:
 - AWS CDK MCP (stdio)
@@ -111,6 +116,8 @@ Use appropriate constructs for automatic bundling:
 - **TypeScript/JavaScript**: `NodejsFunction` from `aws-cdk-lib/aws-lambda-nodejs`
 - **Python**: `PythonFunction` from `@aws-cdk/aws-lambda-python-alpha`
 
+For deployment patterns (versions, aliases, canary/linear traffic shifting, layers, cold-start tuning), see the [`aws-cdk-lambda-deployment`](plugins/aws-cdk/skills/aws-cdk-lambda-deployment/SKILL.md) skill.
+
 ### Pre-Deployment Validation
 
 Before committing CDK code:
@@ -139,6 +146,20 @@ Claude will:
 - Avoid explicit resource naming
 - Grant proper IAM permissions
 - Use MCP servers for latest AWS information
+
+### Lambda Deployment
+
+Roll out a new Lambda version safely:
+
+```
+Wire my OrdersApi Lambda behind an alias and canary 10% of traffic for 5 minutes with auto-rollback on errors
+```
+
+Claude will:
+- Publish an immutable version and create a `live` alias
+- Configure a `LambdaDeploymentGroup` with `CANARY_10PERCENT_5MINUTES`
+- Wire CloudWatch alarms (errors, throttles) and enable `autoRollback`
+- Suggest provisioned concurrency or SnapStart if cold starts matter
 
 ### Cost Optimization
 
@@ -235,12 +256,14 @@ Configure observability for my AgentCore runtime with CloudWatch dashboards
 │   │           └── SKILL.md
 │   ├── aws-cdk/
 │   │   └── skills/
-│   │       └── aws-cdk-development/  # CDK development skill
-│   │           ├── SKILL.md
-│   │           ├── references/
-│   │           │   └── cdk-patterns.md
-│   │           └── scripts/
-│   │               └── validate-stack.sh
+│   │       ├── aws-cdk-development/  # CDK development skill
+│   │       │   ├── SKILL.md
+│   │       │   ├── references/
+│   │       │   │   └── cdk-patterns.md
+│   │       │   └── scripts/
+│   │       │       └── validate-stack.sh
+│   │       └── aws-cdk-lambda-deployment/  # Lambda deployment skill
+│   │           └── SKILL.md
 │   ├── aws-cost-ops/
 │   │   └── skills/
 │   │       └── aws-cost-operations/  # Cost & operations skill
